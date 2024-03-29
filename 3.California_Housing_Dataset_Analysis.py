@@ -1,3 +1,4 @@
+import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -12,29 +13,28 @@ california_housing = fetch_california_housing(as_frame=True)
 california_df = pd.concat([california_housing.data, california_housing.target], axis=1)
 california_df.rename(columns={'target': 'MedHouseVal'}, inplace=True)  # Rename the target column
 
+#Title
+# Display heading and subheading with user's name
+st.title('California Housing Dataset Analysis')
+st.subheader('Analyzing relationships with quantities - by Lokesh Dandumahanti')
+
+st.subheader('Change the variables present in the sidebar to the left')
+
+
 # Display the first few rows of the dataset
-print(california_df.head())
+st.write(california_df.head())
 
-# Summary statistics of the dataset
-print(california_df.describe())
-
-# Correlation matrix to analyze feature relationships
-correlation_matrix = california_df.corr()
-plt.figure(figsize=(12, 8))
-sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
-plt.title('Correlation Matrix')
-plt.show()
-
-# Pairplot to visualize relationships between variables
-sns.pairplot(california_df[['MedHouseVal', 'MedInc', 'HouseAge', 'AveRooms', 'AveBedrms']])
-plt.show()
+# Sidebar for user input
+st.sidebar.title('Model Parameters')
+test_size = st.sidebar.slider('Test Size', 0.1, 0.5, 0.2, 0.1)
+random_state = st.sidebar.slider('Random State', 0, 100, 42)
 
 # Extract features (X) and target variable (y)
 X = california_df.drop('MedHouseVal', axis=1)
 y = california_df['MedHouseVal']
 
 # Split the data into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=random_state)
 
 # Build a Linear Regression model
 model = LinearRegression()
@@ -47,22 +47,23 @@ y_pred = model.predict(X_test)
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
-print(f'Mean Squared Error: {mse:.2f}')
-print(f'R-squared: {r2:.2f}')
+st.write(f'Mean Squared Error: {mse:.2f}')
+st.write(f'R-squared: {r2:.2f}')
 
 # Plotting predicted vs actual values
-plt.scatter(y_test, y_pred)
-plt.xlabel('Actual Prices')
-plt.ylabel('Predicted Prices')
-plt.title('Actual vs Predicted Prices')
-plt.show()
+fig, ax = plt.subplots()
+ax.scatter(y_test, y_pred)
+ax.set_xlabel('Actual Prices')
+ax.set_ylabel('Predicted Prices')
+ax.set_title('Actual vs Predicted Prices')
+st.pyplot(fig)
 
 # Residual Analysis
 residuals = y_test - y_pred
-plt.figure(figsize=(10, 6))
-sns.scatterplot(x=y_pred, y=residuals, color='blue')
-plt.axhline(0, color='red', linestyle='--', linewidth=2)
-plt.title('Residual Analysis')
-plt.xlabel('Predicted Prices')
-plt.ylabel('Residuals')
-plt.show()
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.scatterplot(x=y_pred, y=residuals, color='blue', ax=ax)
+ax.axhline(0, color='red', linestyle='--', linewidth=2)
+ax.set_title('Residual Analysis')
+ax.set_xlabel('Predicted Prices')
+ax.set_ylabel('Residuals')
+st.pyplot(fig)
